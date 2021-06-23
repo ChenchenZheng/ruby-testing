@@ -21,21 +21,38 @@ class UnitConverter
   private
 
   CONVERSION_FACTORS = {
-    cup: {
-      liter: 0.236588
+    liter: {
+      cup: 4.226775,
+      liter: 1,
+      pint: 2.11338
+    },
+    gram: {
+      gram: 1,
+      kilgram: 1000
     }
   }
 
   # We don't test private methods
   def conversion_factor(from:, to:)
-    CONVERSION_FACTORS[from][to] ||
+    dimension = common_dimension(from, to)
+    if !dimension.nil?
+      CONVERSION_FACTORS[dimension][to] / CONVERSION_FACTORS[dimension][from]
+    else
       raise(DimensionalMismatchError, "Can't convert from #{from} to #{to}!")
+    end
+  end
+
+  def common_dimension(from, to)
+    CONVERSION_FACTORS.keys.find do |canonical_unit|
+      CONVERSION_FACTORS[canonical_unit].keys.include?(from) &&
+        CONVERSION_FACTORS[canonical_unit].keys.include?(to)
+    end
   end
 end
 
 describe UnitConverter do
   describe '#convert' do
-    it 'translates between objects of the same dimesion' do
+    it 'translates between objects of the same dimension' do
       cups = Quantity.new(2, :cup)
       converter = UnitConverter.new(cups, :liter)
 
@@ -45,8 +62,18 @@ describe UnitConverter do
       expect(result.unit).to eq(:liter)
     end
 
-    it 'reises an error if the two quatities are of differing dimensions' do
+    it 'can convert between quantities of the same unit' do
+      cups = Quantity.new(2, :cup)
+      converter = UnitConverter.new(cups, :cup)
+
+      result = converter.convert
+
+      expect(result.amount).to be_within(0.001).of(2)
+      expect(result.unit).to eq(:cup)
+    end
+
     # use "xit" to pending a test
+    it 'reises an error if the two quatities are of differing dimensions' do
       cups = Quantity.new(2, :cup)
       converter = UnitConverter.new(cups, :gram)
 
