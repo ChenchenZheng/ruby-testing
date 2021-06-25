@@ -1,7 +1,8 @@
 class CompletionsController < ApplicationController
   def create
     # touch, update the specified timestamps of the model with the current time
-    todo.touch :completed_at
+    # todo.touch :completed_at
+    todo.complete!
     redirect_to todos_path
   end
 
