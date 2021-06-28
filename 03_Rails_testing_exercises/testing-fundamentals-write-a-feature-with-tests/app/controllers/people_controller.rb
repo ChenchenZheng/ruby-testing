@@ -16,6 +16,19 @@ class PeopleController < ApplicationController
     @person = Person.find(params[:id])
   end
 
+  def edit
+    @person = Person.find(params[:id])
+  end
+
+  def update
+    @person.update(person_attributes)
+    if @person.save
+      redirect_to @person, notice: "Person updated."
+    else
+      render :edit
+    end
+  end
+
   private
 
   def person_attributes
